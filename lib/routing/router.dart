@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import '../ui/auth/widgets/forgot_password_screen.dart';
 import '../ui/auth/widgets/login_screen.dart';
 import '../ui/auth/widgets/register_screen.dart';
+import '../ui/core/ui/header_user_screen.dart';
 import '../ui/core/ui/welcome_screen.dart';
 import '../ui/user/widgets/home_screen.dart';
 
@@ -32,7 +33,7 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/home',
       name: 'home',
-      builder: (context, state) => const HomeScreen(),
+      builder: (context, state) => const HeaderUserScreen(),
     ),
   ],
 

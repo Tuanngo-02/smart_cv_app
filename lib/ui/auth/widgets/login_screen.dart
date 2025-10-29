@@ -41,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _submit() async {
+    context.go('/home');
     // if (!_formKey.currentState!.validate()) return;
     //
     // // Ví dụ xử lý login: ở đây chỉ mock đồng thời show Snackbar
