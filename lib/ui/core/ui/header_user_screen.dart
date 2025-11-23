@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../auth/widgets/register_screen.dart';
+import '../../user/widgets/Upload_screen.dart';
 import '../../user/widgets/home_screen.dart';
 import '../../core/themes/colors.dart';
 
@@ -16,7 +17,7 @@ class HeaderUserScreen extends StatelessWidget {
           physics: NeverScrollableScrollPhysics(), // không cho swipe ngang
           children: [
             HomeScreen(),
-            RegisterScreen()
+            UploadScreen()
             // AIAnalysisScreen(),
             // JobsScreen(),
             // ProfileScreen(),

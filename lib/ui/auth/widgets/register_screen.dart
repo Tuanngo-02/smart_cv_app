@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -38,16 +39,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() => _loading = false);
+    try {
+      setState(() => _loading = true);
 
-    final roleStr = _role == SignUpRole.jobSeeker ? 'Job Seeker' : 'Recruiter';
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Registered as $roleStr: ${_emailCtl.text}')),
-    );
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailCtl.text.trim(),
+        password: _pwdCtl.text.trim(),
+      );
+      context.go('/login');
+
+    } on FirebaseAuthException catch (e) {
+      String msg = '';
+      switch (e.code) {
+        case 'email-already-in-use':
+          msg = 'Email đã tồn tại';
+          break;
+        case 'invalid-email':
+          msg = 'Email không hợp lệ';
+          break;
+        case 'weak-password':
+          msg = 'Mật khẩu quá yếu (ít nhất 6 ký tự)';
+          break;
+        default:
+          msg = 'Đăng ký thất bại: ${e.message}';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
+    } finally {
+      setState(() => _loading = false);
+    }
   }
 
   @override

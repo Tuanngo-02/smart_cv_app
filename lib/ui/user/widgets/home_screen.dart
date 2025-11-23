@@ -1,11 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../core/themes/colors.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: AppColors.bg1,
       body: SafeArea(
@@ -21,12 +24,15 @@ class HomeScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      "Welcome, John!",
-                      style: Theme.of(context).textTheme.headlineLarge
-                          ?.copyWith(
-                            color: AppColors.bg2,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      "WELCOME\n${user!.email}",
+                      textAlign: TextAlign.center, // căn giữa
+                      style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                        color: AppColors.bg2,
+                        fontWeight: FontWeight.bold,
+                        height: 1.3, // khoảng cách dòng
+                        fontSize: 18, // chỉnh kích thước chữ
+                        letterSpacing: 1.5, // khoảng cách giữa các chữ
+                      ),
                     ),
                     SizedBox(height: 4),
                     Text(
@@ -68,7 +74,8 @@ class HomeScreen extends StatelessWidget {
                       SizedBox(height: 8),
                       GestureDetector(
                         onTap: () {
-                          // Xử lý upload
+                          // Navigate to UploadScreen
+                          context.go("/upload");
                         },
                         child: Container(
                           padding: EdgeInsets.all(16),
