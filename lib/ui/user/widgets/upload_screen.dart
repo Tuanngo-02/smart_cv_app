@@ -1,7 +1,9 @@
 import 'dart:convert';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
@@ -15,6 +17,7 @@ class UploadScreen extends StatefulWidget {
   State<UploadScreen> createState() => _UploadScreenState();
 }
 class _UploadScreenState extends State<UploadScreen> {
+  final uid = FirebaseAuth.instance.currentUser!.uid;
   PlatformFile? cvFile;
   String? jdFile;
 
@@ -40,6 +43,15 @@ class _UploadScreenState extends State<UploadScreen> {
       // đọc response JSON
       String respStr = await response.stream.bytesToString();
       var jsonData = jsonDecode(respStr);
+
+      for (var job in jsonData) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .collection('jobs')
+            .doc(job["JobID"].toString()) // dùng JobID làm documentId
+            .set(job);
+      }
       Navigator.push(
         context,
         MaterialPageRoute(
