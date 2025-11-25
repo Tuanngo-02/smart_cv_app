@@ -8,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 import '../../core/themes/colors.dart';
+import '../view_models/fileService.dart';
+import 'analysisResultPage_screen.dart';
 import 'resultPage.dart';
 
 class UploadScreen extends StatefulWidget {
@@ -19,7 +21,7 @@ class UploadScreen extends StatefulWidget {
 class _UploadScreenState extends State<UploadScreen> {
   final uid = FirebaseAuth.instance.currentUser!.uid;
   PlatformFile? cvFile;
-  String? jdFile;
+  PlatformFile? jdFile;
 
   Future<void> uploadCv(PlatformFile cvFile) async {
     if (cvFile.path == null) return;
@@ -124,7 +126,7 @@ class _UploadScreenState extends State<UploadScreen> {
                   buttonColor: Colors.purple,
                   onFileSelected: (file) {
                     setState(() {
-                      // jdFile = file;
+                      jdFile = file;
                     });
                   },
                 ),
@@ -136,7 +138,7 @@ class _UploadScreenState extends State<UploadScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: (cvFile != null)
                         ? AppColors
-                              .button1 // màu nền khi enabled
+                        .button1 // màu nền khi enabled
                         : Colors.grey, // màu nền khi disabled
                     foregroundColor: Colors.white, // màu chữ
                     padding: EdgeInsets.symmetric(vertical: 16),
@@ -152,6 +154,39 @@ class _UploadScreenState extends State<UploadScreen> {
                     if (cvFile != null) {
                       await uploadCv(cvFile!);
                     }
+
+                  }
+                      : null, // disabled nếu chưa chọn file
+                  child: Text("Search for Jobs"),
+                ),
+              ),
+              SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: (cvFile != null && jdFile != null)
+                        ? AppColors
+                              .button1 // màu nền khi enabled
+                        : Colors.grey, // màu nền khi disabled
+                    foregroundColor: Colors.white, // màu chữ
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    textStyle: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onPressed: (cvFile != null && jdFile != null)
+                      ? () async {
+                        var result = await sendCvJdFiles(cvFile: cvFile!, jdFile: jdFile!);
+                        if (result != null && context.mounted) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AnalysisResultPageScreen(result: result),
+                            ),
+                          );
+                        }
 
                   }
                       : null, // disabled nếu chưa chọn file
