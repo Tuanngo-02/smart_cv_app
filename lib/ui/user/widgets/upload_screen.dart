@@ -28,9 +28,9 @@ class _UploadScreenState extends State<UploadScreen> {
 
     var request = http.MultipartRequest(
       "POST",
-      Uri.parse("http://10.0.2.2:5000/upload"), // địa chỉ backend Python
+      Uri.parse("http://127.0.0.1:5000/upload"), // địa chỉ backend Python
     );
-
+   
     request.files.add(
       await http.MultipartFile.fromPath(
         'file',       // tên field, backend đọc bằng request.files['file']
