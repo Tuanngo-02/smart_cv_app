@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
@@ -24,23 +25,37 @@ class _UploadScreenState extends State<UploadScreen> {
   PlatformFile? jdFile;
 
   Future<void> uploadCv(PlatformFile cvFile) async {
-    if (cvFile.path == null) return;
-
     var request = http.MultipartRequest(
       "POST",
-      Uri.parse("http://127.0.0.1:5000/upload"), // địa chỉ backend Python
+      Uri.parse("http://127.0.0.1:5000/upload"),
     );
-   
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'file',       // tên field, backend đọc bằng request.files['file']
-        cvFile.path!,
-        filename: cvFile.name,
-      ),
-    );
+
+    if (kIsWeb) {
+      // Web dùng bytes
+      final bytes = cvFile.bytes;
+      if (bytes == null) return;
+
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          bytes,
+          filename: cvFile.name,
+        ),
+      );
+    } else {
+      // Mobile/Dekstop dùng path
+      if (cvFile.path == null) return;
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          cvFile.path!,
+          filename: cvFile.name,
+        ),
+      );
+    }
 
     var response = await request.send();
-
     if (response.statusCode == 200) {
       // đọc response JSON
       String respStr = await response.stream.bytesToString();
@@ -63,7 +78,7 @@ class _UploadScreenState extends State<UploadScreen> {
       print("Top jobs JSON: $jsonData");
       return jsonData; // list of top 10 jobs
     } else {
-      print("Upload thất bại: ${response.statusCode}");
+      print("Upload lỗi: ${response.statusCode}");
     }
   }
   @override
@@ -85,115 +100,118 @@ class _UploadScreenState extends State<UploadScreen> {
       body: Container(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Upload Documents",
-                style: Theme.of(context).textTheme.headlineLarge,
-              ),
-              SizedBox(height: 4),
-              Text(
-                "Upload your CV and target job description",
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              SizedBox(height: 16),
-              Container(
-                margin: EdgeInsets.all(16),
-                color: AppColors.bg1,
-                child: UploadCard(
-                  title: "Upload Your CV",
-                  subtitle: "PDF format, max 5MB",
-                  icon: Icons.description,
-                  iconColor: AppColors.button1,
-                  buttonColor: AppColors.button1,
-                  onFileSelected: (PlatformFile file) {
-                    setState(() {
-                      cvFile = file; // cập nhật trạng thái nút
-                    });
-                  },
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Upload Documents",
+                  style: Theme.of(context).textTheme.headlineLarge,
                 ),
-              ),
-              SizedBox(height: 10),
-              Container(
-                margin: EdgeInsets.all(16),
-                color: AppColors.bg1,
-                child: UploadCard(
-                  title: "Upload Job Description",
-                  subtitle: "PDF format, max 5MB",
-                  icon: Icons.work_outline,
-                  iconColor: Colors.purple,
-                  buttonColor: Colors.purple,
-                  onFileSelected: (file) {
-                    setState(() {
-                      jdFile = file;
-                    });
-                  },
+                SizedBox(height: 4),
+                Text(
+                  "Upload your CV and target job description",
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
-              ),
-              SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: (cvFile != null)
-                        ? AppColors
-                        .button1 // màu nền khi enabled
-                        : Colors.grey, // màu nền khi disabled
-                    foregroundColor: Colors.white, // màu chữ
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    textStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                SizedBox(height: 16),
+                Container(
+                  margin: EdgeInsets.all(16),
+                  color: AppColors.bg1,
+                  child: UploadCard(
+                    title: "Upload Your CV",
+                    subtitle: "PDF format, max 5MB",
+                    icon: Icons.description,
+                    iconColor: AppColors.button1,
+                    buttonColor: AppColors.button1,
+                    onFileSelected: (PlatformFile file) {
+                      setState(() {
+                        cvFile = file; // cập nhật trạng thái nút
+                      });
+                    },
                   ),
-                  onPressed: (cvFile != null )
-                      ? () async {
-                    // Thực hiện phân tích AI
-                    // Ví dụ gửi file lên backend
-                    if (cvFile != null) {
-                      await uploadCv(cvFile!);
+                ),
+                SizedBox(height: 10),
+                Container(
+                  margin: EdgeInsets.all(16),
+                  color: AppColors.bg1,
+                  child: UploadCard(
+                    title: "Upload Job Description",
+                    subtitle: "PDF format, max 5MB",
+                    icon: Icons.work_outline,
+                    iconColor: Colors.purple,
+                    buttonColor: Colors.purple,
+                    onFileSelected: (file) {
+                      setState(() {
+                        jdFile = file;
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: (cvFile != null)
+                          ? AppColors
+                          .button1 // màu nền khi enabled
+                          : Colors.grey, // màu nền khi disabled
+                      foregroundColor: Colors.white, // màu chữ
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      textStyle: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: (cvFile != null )
+                        ? () async {
+                      // Thực hiện phân tích AI
+                      // Ví dụ gửi file lên backend
+                      if (cvFile != null) {
+                        await uploadCv(cvFile!);
+                      }
+
                     }
-
-                  }
-                      : null, // disabled nếu chưa chọn file
-                  child: Text("Search for Jobs"),
-                ),
-              ),
-              SizedBox(height: 10),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: (cvFile != null && jdFile != null)
-                        ? AppColors
-                              .button1 // màu nền khi enabled
-                        : Colors.grey, // màu nền khi disabled
-                    foregroundColor: Colors.white, // màu chữ
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    textStyle: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        : null, // disabled nếu chưa chọn file
+                    child: Text("Search for Jobs"),
                   ),
-                  onPressed: (cvFile != null && jdFile != null)
-                      ? () async {
-                        var result = await sendCvJdFiles(cvFile: cvFile!, jdFile: jdFile!);
-                        if (result != null && context.mounted) {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AnalysisResultPageScreen(result: result),
-                            ),
-                          );
-                        }
-
-                  }
-                      : null, // disabled nếu chưa chọn file
-                  child: Text("Continue to AI Analysis"),
                 ),
-              ),
-            ],
+                SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: (cvFile != null && jdFile != null)
+                          ? AppColors
+                          .button1 // màu nền khi enabled
+                          : Colors.grey, // màu nền khi disabled
+                      foregroundColor: Colors.white, // màu chữ
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      textStyle: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: (cvFile != null && jdFile != null)
+                        ? () async {
+                      var result = await sendCvJdFiles(cvFile: cvFile!, jdFile: jdFile!);
+                      if (result != null && context.mounted) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AnalysisResultPageScreen(result: result),
+                          ),
+                        );
+                      }
+
+                    }
+                        : null, // disabled nếu chưa chọn file
+                    child: Text("Continue to AI Analysis"),
+                  ),
+                ),
+              ],
+            ),
+
           ),
         ),
       ),
