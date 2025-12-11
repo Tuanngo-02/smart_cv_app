@@ -51,7 +51,9 @@ Future<Map<String, dynamic>?> sendCvJdFiles({
 
     if (response.statusCode == 200) {
       var respStr = await response.stream.bytesToString();
+      print(respStr);
       var jsonResp = json.decode(respStr);
+      print(jsonResp);
       return jsonResp;
     } else {
       print("Error ${response.statusCode}");

@@ -195,6 +195,7 @@ class _UploadScreenState extends State<UploadScreen> {
                     onPressed: (cvFile != null && jdFile != null)
                         ? () async {
                       var result = await sendCvJdFiles(cvFile: cvFile!, jdFile: jdFile!);
+                      print(result);
                       if (result != null && context.mounted) {
                         Navigator.push(
                           context,
