@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-
-import '../../auth/widgets/register_screen.dart';
 import '../../user/widgets/Upload_screen.dart';
 import '../../user/widgets/listJobsPage_screen.dart';
 import '../../user/widgets/home_screen.dart';
+import '../../user/widgets/profile_screen.dart'; // ✅ Import Profile
 import '../../core/themes/colors.dart';
 
 class HeaderUserScreen extends StatelessWidget {
@@ -12,17 +11,15 @@ class HeaderUserScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 4, // số tab
+      length: 4, // ✅ 4 tabs
       child: Scaffold(
         body: TabBarView(
-          physics: NeverScrollableScrollPhysics(), // không cho swipe ngang
+          physics: NeverScrollableScrollPhysics(),
           children: [
             HomeScreen(),
             UploadScreen(),
-            ListJobsPageScreen()
-            // AIAnalysisScreen(),
-            // JobsScreen(),
-            // ProfileScreen(),
+            ListJobsPageScreen(),
+            ProfileScreen(), // ✅ Thêm Profile tab
           ],
         ),
         bottomNavigationBar: TabBar(
@@ -32,7 +29,7 @@ class HeaderUserScreen extends StatelessWidget {
             Tab(icon: Icon(Icons.home), text: "Home"),
             Tab(icon: Icon(Icons.analytics), text: "AI Analysis"),
             Tab(icon: Icon(Icons.work), text: "Jobs"),
-            Tab(icon: Icon(Icons.person), text: "Profile"),
+            Tab(icon: Icon(Icons.person), text: "Profile"), // ✅ Tab Profile
           ],
         ),
       ),

@@ -246,12 +246,11 @@ class _UploadCardState extends State<UploadCard> {
   @override
   Widget build(BuildContext context) {
     return DottedBorder(
-      options: RectDottedBorderOptions(
         dashPattern: [6, 3],
         strokeWidth: 2,
         color: Colors.grey,
         padding: EdgeInsets.all(8),
-      ),
+      
       child: Container(
         width: double.infinity,
         padding: EdgeInsets.all(16),

@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/themes/colors.dart';
 
-enum LoginRole { jobSeeker, recruiter }
+// Đã xóa enum LoginRole vì chỉ còn 1 vai trò
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -14,19 +14,14 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  LoginRole _role = LoginRole.jobSeeker;
   final _formKey = GlobalKey<FormState>();
   final _emailCtl = TextEditingController();
   final _pwdCtl = TextEditingController();
   bool _obscure = true;
   bool _loading = false;
 
-  String get _title {
-    return _role == LoginRole.jobSeeker
-        ? 'Welcome Back Seeker'
-        : 'Welcome Back Recruiter';
-  }
-
+  // Tiêu đề cố định cho Job Seeker
+  String get _title => 'Welcome Back Seeker';
   String get _subtitle => 'Sign in to continue your journey';
 
   @override
@@ -36,19 +31,22 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _switchRole(LoginRole r) {
-    if (_role == r) return;
-    setState(() => _role = r);
-  }
+  // Đã xóa hàm _switchRole
 
   Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return; // Thêm validate check trước khi submit
+
+    setState(() => _loading = true); // Cập nhật trạng thái loading
+
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailCtl.text.trim(),
         password: _pwdCtl.text.trim(),
       );
 
-      context.go('/home');
+      if (mounted) {
+        context.go('/home');
+      }
 
     } on FirebaseAuthException catch (e) {
       String message = '';
@@ -65,13 +63,21 @@ class _LoginScreenState extends State<LoginScreen> {
         default:
           message = 'Đăng nhập thất bại: ${e.message}';
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Có lỗi xảy ra, thử lại sau')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Có lỗi xảy ra, thử lại sau')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
   }
 
@@ -104,8 +110,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildRoleToggle(cs),
-                        const SizedBox(height: 20),
+                        // Đã xóa _buildRoleToggle
+                        const SizedBox(height: 10),
+                        
                         Text(
                           _title,
                           style: Theme.of(context).textTheme.headlineLarge!
@@ -129,9 +136,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               TextFormField(
                                 controller: _emailCtl,
                                 keyboardType: TextInputType.emailAddress,
-                                decoration: InputDecoration(
+                                decoration: const InputDecoration(
                                   labelText: 'Email',
-                                  prefixIcon: const Icon(Icons.email),
+                                  prefixIcon: Icon(Icons.email),
                                 ),
                                 validator: (v) {
                                   if (v == null || v.trim().isEmpty) {
@@ -175,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                               const SizedBox(height: 12),
 
-                              // Forgot password + spacer
+                              // Forgot password
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
@@ -211,6 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                           width: 20,
                                           child: CircularProgressIndicator(
                                             strokeWidth: 2.0,
+                                            color: Colors.white,
                                           ),
                                         )
                                       : Text(
@@ -250,70 +258,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
             ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRoleToggle(ColorScheme cs) {
-    final selectedColor = cs.primary;
-    final unselectedColor = cs.surfaceVariant ?? cs.onSurface.withOpacity(0.08);
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _roleButton(
-          label: 'Job Seeker',
-          selected: _role == LoginRole.jobSeeker,
-          onTap: () => _switchRole(LoginRole.jobSeeker),
-          selectedColor: selectedColor,
-          unselectedColor: unselectedColor,
-        ),
-        const SizedBox(width: 12),
-        _roleButton(
-          label: 'Recruiter',
-          selected: _role == LoginRole.recruiter,
-          onTap: () => _switchRole(LoginRole.recruiter),
-          selectedColor: selectedColor,
-          unselectedColor: unselectedColor,
-        ),
-      ],
-    );
-  }
-
-  Widget _roleButton({
-    required String label,
-    required bool selected,
-    required VoidCallback onTap,
-    required Color selectedColor,
-    required Color unselectedColor,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-        decoration: BoxDecoration(
-          color: selected ? selectedColor : unselectedColor,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: selectedColor.withOpacity(0.16),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          style: Theme.of(context).textTheme.titleMedium!.copyWith(
-            color: selected
-                ? Theme.of(context).colorScheme.onPrimary
-                : Theme.of(context).colorScheme.onSurface,
-            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
           ),
         ),
       ),
