@@ -25,16 +25,16 @@ class _ListJobsPageScreenState extends State<ListJobsPageScreen> {
   /// Output: {'title': "Nhân Viên Kinh Doanh", 'extra': "Thu Nhập 15-30tr"}
   Map<String, String> cleanJobTitle(String rawTitle) {
     // 1. Xóa các ký tự rác Markdown/HTML artifacts (ví dụ: [0](link...))
-    String clean = rawTitle.replaceAll(RegExp(r'\[.*?\]\(.*?\)'), '');
+    var clean = rawTitle.replaceAll(RegExp(r'\[.*?\]\(.*?\)'), '');
     clean = clean.replaceAll(RegExp(r'\d+\]'), ''); // Xóa các số dạng 0]
     
     // 2. Tách thông tin trong dấu ngoặc ()
     if (clean.contains('(')) {
-      List<String> parts = clean.split('(');
-      String mainTitle = parts[0].trim();
+      final parts = clean.split('(');
+      final mainTitle = parts[0].trim();
       
       // Lấy phần trong ngoặc và xóa dấu đóng ngoặc ')'
-      String extraInfo = parts.length > 1 
+      final extraInfo = parts.length > 1 
           ? parts[1].replaceAll(')', '').trim() 
           : '';
       
@@ -58,17 +58,17 @@ class _ListJobsPageScreenState extends State<ListJobsPageScreen> {
   @override
   Widget build(BuildContext context) {
     // Lấy kích thước màn hình
-    double screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = MediaQuery.of(context).size.width;
     
     // Logic Responsive:
     // Nếu chiều rộng > 900px (Web rộng): 3 cột
     // Nếu chiều rộng > 600px (Tablet/Web nhỏ): 2 cột
     // Còn lại (Mobile): 1 cột
-    int crossAxisCount = screenWidth > 900 ? 3 : (screenWidth > 600 ? 2 : 1);
+    final crossAxisCount = screenWidth > 900 ? 3 : (screenWidth > 600 ? 2 : 1);
     
     // Điều chỉnh tỷ lệ khung hình (width / height) của Card tùy theo số cột
     // Số càng nhỏ thì Card càng cao.
-    double childAspectRatio = screenWidth > 600 ? 2.2 : 2.8; 
+    final childAspectRatio = screenWidth > 600 ? 2.2 : 2.8; 
 
     return Scaffold(
       backgroundColor: Colors.grey[100], // Màu nền xám nhẹ hiện đại
@@ -131,9 +131,9 @@ class _ListJobsPageScreenState extends State<ListJobsPageScreen> {
   /// WIDGET CON: Hien thi 1 Card Job
   Widget _buildJobCard(var job) {
     // 1. Xử lý dữ liệu đầu vào
-    String rawTitle = job['Job Title'] ?? 'No Title';
-    Map<String, String> info = cleanJobTitle(rawTitle); // Tách title và extra
-    int matchPercent = ((job['Match (%)'] ?? 0) as num).toInt();
+    final String rawTitle = job['Job Title'] ?? 'No Title';
+    final info = cleanJobTitle(rawTitle); // Tách title và extra
+    final matchPercent = ((job['Match (%)'] ?? 0) as num).toInt();
 
     return Card(
       elevation: 2, // Đổ bóng nhẹ

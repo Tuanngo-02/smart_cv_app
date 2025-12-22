@@ -23,9 +23,9 @@ class ResultPage extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         itemCount: topJobs.length,
         itemBuilder: (context, index) {
-          var job = topJobs[index];
+          final job = topJobs[index];
 
-          int matchPercent = ((job['Match (%)'] ?? 0) as num).toInt();
+          final matchPercent = ((job['Match (%)'] ?? 0) as num).toInt();
 
           return Card(
             elevation: 4,

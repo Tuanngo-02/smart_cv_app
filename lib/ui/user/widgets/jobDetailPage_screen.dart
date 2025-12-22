@@ -24,8 +24,8 @@ class JobDetailPageScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int matchPercent = ((job['Match (%)'] ?? 0) as num).toInt();
-    String jobLink = job['link'] ?? '';
+    final matchPercent = ((job['Match (%)'] ?? 0) as num).toInt();
+    final String jobLink = job['link'] ?? '';
 
     return Scaffold(
       appBar: AppBar(title: const Text("Job Detail")),

@@ -13,6 +13,6 @@ Future<List<dynamic>> fetchUserJobs() async {
       .get();
 
   // Chuyển thành List<Map<String, dynamic>>
-  List<Map<String, dynamic>> jobs = snapshot.docs.map((doc) => doc.data()).toList();
+  final jobs = snapshot.docs.map((doc) => doc.data()).toList();
   return jobs;
 }

@@ -19,7 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCtl = TextEditingController();
   final _pwdCtl = TextEditingController();
   bool _obscure = true;
-  bool _loading = false;
+  final bool _loading = false;
 
   String get _title {
     return _role == LoginRole.jobSeeker
@@ -51,7 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context.go('/home');
 
     } on FirebaseAuthException catch (e) {
-      String message = '';
+      var message = '';
       switch (e.code) {
         case 'invalid-email':
           message = 'Email không hợp lệ.';
@@ -258,7 +258,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildRoleToggle(ColorScheme cs) {
     final selectedColor = cs.primary;
-    final unselectedColor = cs.surfaceVariant ?? cs.onSurface.withOpacity(0.08);
+    final unselectedColor = cs.surfaceContainerHighest ?? cs.onSurface.withOpacity(0.08);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
