@@ -49,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
     } on FirebaseAuthException catch (e) {
-      String message = '';
+      var message = '';
       switch (e.code) {
         case 'invalid-email':
           message = 'Email không hợp lệ.';
@@ -112,7 +112,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       children: [
                         // Đã xóa _buildRoleToggle
                         const SizedBox(height: 10),
-                        
+
                         Text(
                           _title,
                           style: Theme.of(context).textTheme.headlineLarge!

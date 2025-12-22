@@ -25,23 +25,23 @@ class JobDetailPageScreen extends StatelessWidget {
   /// ✅ LÀM SẠCH TITLE - CHỈ LẤY TÊN CÔNG TY
   String _cleanTitle(String rawTitle) {
     String clean = rawTitle;
-    
+
     // 1. Xóa tất cả links [text](url)
     clean = clean.replaceAll(RegExp(r'\[.*?\]\(.*?\)'), '');
-    
+
     // 2. Xóa URLs trực tiếp (https://...)
     clean = clean.replaceAll(RegExp(r'https?://[^\s)]+'), '');
-    
+
     // 3. Xóa các ký tự markdown còn sót
     clean = clean.replaceAll(RegExp(r'\d+\]'), '');
     clean = clean.replaceAll(RegExp(r'[\[\]]'), '');
     clean = clean.replaceAll(RegExp(r"'{2,}|\]{2,}"), '');
-    
+
     // 4. Xóa \n và normalize spaces
     clean = clean.replaceAll(RegExp(r'\\n'), ' ');
     clean = clean.replaceAll(RegExp(r'\n'), ' ');
     clean = clean.replaceAll(RegExp(r'\s+'), ' ');
-    
+
     // 5. ✅ CHỈ LẤY PHẦN ĐẦU TIÊN trước dấu '(' hoặc ']'
     if (clean.contains('(')) {
       clean = clean.split('(')[0];
@@ -49,7 +49,7 @@ class JobDetailPageScreen extends StatelessWidget {
     if (clean.contains(']')) {
       clean = clean.split(']')[0];
     }
-    
+
     return clean.trim();
   }
 
@@ -60,7 +60,7 @@ class JobDetailPageScreen extends StatelessWidget {
     String rawTitle = job['Job Title'] ?? 'No Title';
     String cleanedTitle = _cleanTitle(rawTitle);
     String feedback = job['Gemini Feedback'] ?? 'No feedback available';
-    
+
     // Tách feedback thành sections
     List<String> feedbackSections = feedback.split('\n')
         .where((line) => line.trim().isNotEmpty)
@@ -99,7 +99,7 @@ class JobDetailPageScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Company
                     Row(
                       children: [
@@ -118,7 +118,7 @@ class JobDetailPageScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Match % Badge
                     Row(
                       children: [
@@ -157,9 +157,9 @@ class JobDetailPageScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // AI FEEDBACK CARD
             Card(
               elevation: 2,
@@ -185,18 +185,18 @@ class JobDetailPageScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    
+
                     // Hiển thị feedback
                     ...feedbackSections.map((section) {
                       bool isHeader = section.startsWith('Match:') ||
                                      section.startsWith('Comment:') ||
                                      section.startsWith('Improvement:');
-                      
+
                       if (isHeader) {
                         List<String> parts = section.split(':');
                         String header = parts[0];
                         String content = parts.length > 1 ? parts.sublist(1).join(':').trim() : '';
-                        
+
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 16),
                           child: Column(
@@ -250,9 +250,9 @@ class JobDetailPageScreen extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 20),
-            
+
             // ✅ CHỈ 1 NÚT APPLY NOW - ĐÃ BỎ APPLICATION LINK
             if (jobLink.isNotEmpty)
               SizedBox(

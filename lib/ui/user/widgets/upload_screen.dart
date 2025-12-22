@@ -25,7 +25,7 @@ class _UploadScreenState extends State<UploadScreen> {
   PlatformFile? jdFile;
 
   Future<void> uploadCv(PlatformFile cvFile) async {
-    var request = http.MultipartRequest(
+    final request = http.MultipartRequest(
       "POST",
       Uri.parse("http://127.0.0.1:5000/upload"),
     );
@@ -55,13 +55,13 @@ class _UploadScreenState extends State<UploadScreen> {
       );
     }
 
-    var response = await request.send();
+    final response = await request.send();
     if (response.statusCode == 200) {
       // đọc response JSON
-      String respStr = await response.stream.bytesToString();
-      var jsonData = jsonDecode(respStr);
+      final respStr = await response.stream.bytesToString();
+      final jsonData = jsonDecode(respStr);
 
-      for (var job in jsonData) {
+      for (final job in jsonData) {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(uid)
@@ -194,7 +194,7 @@ class _UploadScreenState extends State<UploadScreen> {
                     ),
                     onPressed: (cvFile != null && jdFile != null)
                         ? () async {
-                      var result = await sendCvJdFiles(cvFile: cvFile!, jdFile: jdFile!);
+                      final result = await sendCvJdFiles(cvFile: cvFile!, jdFile: jdFile!);
                       if (result != null && context.mounted) {
                         Navigator.push(
                           context,
@@ -276,7 +276,7 @@ class _UploadCardState extends State<UploadCard> {
                 foregroundColor: Colors.white,
               ),
               onPressed: () async {
-                FilePickerResult? result =
+                final result =
                 await FilePicker.platform.pickFiles(
                   type: FileType.custom,
                   allowedExtensions: ['pdf'],

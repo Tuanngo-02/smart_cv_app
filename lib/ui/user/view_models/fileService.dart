@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'fileWeb.dart';
+import 'fileWeb_stub.dart' if (dart.library.html) 'fileWeb.dart';
 
 Future<Map<String, dynamic>?> sendCvJdFiles({
   required PlatformFile cvFile,
@@ -19,7 +19,7 @@ Future<Map<String, dynamic>?> sendCvJdFiles({
         ? "http://127.0.0.1:8000/analyze/"
         : "http://10.0.2.2:8000/analyze/");
 
-    var request = http.MultipartRequest("POST", uri);
+    final request = http.MultipartRequest("POST", uri);
 
     if (isWeb) {
       request.files.add(http.MultipartFile.fromBytes(
@@ -47,11 +47,11 @@ Future<Map<String, dynamic>?> sendCvJdFiles({
         filename: jdFile.name,
       ));
     }
-    var response = await request.send();
+    final response = await request.send();
 
     if (response.statusCode == 200) {
-      var respStr = await response.stream.bytesToString();
-      var jsonResp = json.decode(respStr);
+      final respStr = await response.stream.bytesToString();
+      final jsonResp = json.decode(respStr);
       return jsonResp;
     } else {
       print("Error ${response.statusCode}");
@@ -62,19 +62,21 @@ Future<Map<String, dynamic>?> sendCvJdFiles({
     return null;
   }
 }
+
 Future<void> downloadPdfMobile(String fullPath) async {
-  String fileName = fullPath.split(r"\").last;
+  final fileName = fullPath.split(r"\").last;
   final url = "http://10.0.2.2:8000/download/$fileName";
 
   final response = await http.get(Uri.parse(url));
 
   if (response.statusCode == 200) {
-    Directory dir = await getTemporaryDirectory();
-    File file = File('${dir.path}/$fileName');
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/$fileName');
     await file.writeAsBytes(response.bodyBytes);
     await OpenFile.open(file.path);
   }
 }
+
 Future<void> downloadPdf(String fullPath) async {
   if (kIsWeb) {
     await downloadPdfWeb(fullPath);

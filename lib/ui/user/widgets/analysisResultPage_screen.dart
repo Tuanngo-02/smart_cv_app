@@ -57,10 +57,10 @@ class AnalysisResultPageScreen extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: data.entries.map<Widget>((e) {
-        Color chipColor = isScore
+        final chipColor = isScore
             ? _getScoreColor(e.value)
             : Colors.blue.shade100;
-        Color textColor = isScore
+        final textColor = isScore
             ? _getScoreTextColor(e.value)
             : Colors.blue.shade900;
 
