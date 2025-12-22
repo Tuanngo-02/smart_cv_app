@@ -5,6 +5,7 @@ import '../../core/themes/colors.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
@@ -19,46 +20,46 @@ class HomeScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: double.infinity, // full width
-                  color: AppColors.button1, // màu nền
+                  width: double.infinity,
+                  color: AppColors.button1,
                   padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
                   child: Column(
                     children: [
                       Text(
                         "WELCOME\n${user!.email}",
-                        textAlign: TextAlign.center, // căn giữa
+                        textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.headlineLarge?.copyWith(
                           color: AppColors.bg2,
                           fontWeight: FontWeight.bold,
-                          height: 1.3, // khoảng cách dòng
-                          fontSize: 18, // chỉnh kích thước chữ
-                          letterSpacing: 1.5, // khoảng cách giữa các chữ
+                          height: 1.3,
+                          fontSize: 18,
+                          letterSpacing: 1.5,
                         ),
                       ),
                       SizedBox(height: 4),
                       Text(
                         "Let's find your perfect job match",
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(color: AppColors.bg2),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: AppColors.bg2
+                        ),
                       ),
                     ],
                   ),
                 ),
                 SizedBox(height: 24),
-
+                
                 // Quick Actions
                 Container(
                   margin: EdgeInsets.all(15),
                   decoration: BoxDecoration(
-                    color: AppColors.bg2, // màu nền
-                    borderRadius: BorderRadius.circular(12), // bo tròn góc 12
+                    color: AppColors.bg2,
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.2), // màu shadow
-                        spreadRadius: 1, // độ lan rộng
-                        blurRadius: 1, // độ mờ
-                        offset: Offset(0, 3), // vị trí shadow
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 1,
+                        blurRadius: 1,
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
@@ -75,7 +76,6 @@ class HomeScreen extends StatelessWidget {
                         SizedBox(height: 8),
                         GestureDetector(
                           onTap: () {
-                            // Navigate to UploadScreen
                             context.go("/upload");
                           },
                           child: Container(
@@ -127,24 +127,128 @@ class HomeScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                        
+                        SizedBox(height: 12),
+                        
+                        // ✅ BỎ MY PROFILE BUTTON - Đã có ở góc dưới phải
+                        // Chỉ giữ My Files và Analysis History
+                        
+                        GestureDetector(
+                          onTap: () => context.push("/my-files"),
+                          child: Container(
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.orange),
+                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.bg1,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.folder, color: Colors.white),
+                                ),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "My Files",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Text(
+                                        "View uploaded CV & JD",
+                                        style: TextStyle(color: Colors.grey[600]),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        
+                        SizedBox(height: 12),
+                        
+                        GestureDetector(
+                          onTap: () => context.push("/history"),
+                          child: Container(
+                            padding: EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.purple),
+                              borderRadius: BorderRadius.circular(12),
+                              color: AppColors.bg1,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.purple,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Icon(Icons.history, color: Colors.white),
+                                ),
+                                SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Analysis History",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Text(
+                                        "View past analysis results",
+                                        style: TextStyle(color: Colors.grey[600]),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.arrow_forward_ios,
+                                  size: 16,
+                                  color: Colors.grey,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
+                
                 SizedBox(height: 6),
-
+                
                 // Upload Status
                 Container(
                   margin: EdgeInsets.all(15),
                   decoration: BoxDecoration(
-                    color: AppColors.bg2, // màu nền
-                    borderRadius: BorderRadius.circular(12), // bo tròn góc 12
+                    color: AppColors.bg2,
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.2), // màu shadow
-                        spreadRadius: 1, // độ lan rộng
-                        blurRadius: 1, // độ mờ
-                        offset: Offset(0, 3), // vị trí shadow
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 1,
+                        blurRadius: 1,
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
@@ -189,7 +293,6 @@ class HomeScreen extends StatelessWidget {
         children: [
           Icon(Icons.info_outline, color: Colors.grey),
           SizedBox(width: 12),
-
           Expanded(
             child: Text(
               title,
@@ -197,9 +300,7 @@ class HomeScreen extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-
           SizedBox(width: 8),
-
           Text(
             "Not uploaded yet",
             style: TextStyle(color: Colors.grey),
@@ -207,6 +308,5 @@ class HomeScreen extends StatelessWidget {
         ],
       ),
     );
-
   }
 }

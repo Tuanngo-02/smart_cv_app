@@ -1,6 +1,8 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 
+import '../ui/user/widgets/profile_screen.dart';
+import '../ui/user/widgets/my_files_screen.dart';
+import '../ui/user/widgets/analysis_history_screen.dart';
 import '../ui/auth/widgets/forgot_password_screen.dart';
 import '../ui/auth/widgets/login_screen.dart';
 import '../ui/auth/widgets/register_screen.dart';
@@ -40,6 +42,15 @@ final GoRouter appRouter = GoRouter(
       name: 'upload',
       builder: (context, state) => const UploadScreen(),
     ),
+    GoRoute(
+      path: '/profile', 
+      builder: (_, __) => const ProfileScreen()),
+    GoRoute(
+      path: '/my-files', 
+      builder: (_, __) => const MyFilesScreen()),
+    GoRoute(
+      path: '/history', 
+      builder: (_, __) => const AnalysisHistoryScreen()),
   ],
 
   // errorBuilder: (context, state) => const NotFoundScreen(),

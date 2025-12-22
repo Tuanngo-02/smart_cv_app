@@ -1,254 +1,209 @@
 import 'package:flutter/material.dart';
-
-// Đảm bảo đường dẫn import đúng với project của bạn
-import '../view_models/resultService.dart';
 import 'jobDetailPage_screen.dart';
 
-class ResultPage extends StatefulWidget {
-  const ResultPage({super.key, required topJobs});
+class ResultPage extends StatelessWidget {
+  final List<dynamic> topJobs;
 
-  @override
-  State<ResultPage> createState() => _ResultPageState();
-}
+  const ResultPage({super.key, required this.topJobs});
 
-class _ResultPageState extends State<ResultPage> {
-  late Future<List<dynamic>> _jobsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _jobsFuture = fetchUserJobs(); // Gọi API/Firebase từ service
-  }
-
-  /// HÀM XỬ LÝ DỮ LIỆU: Tách Title và Thông tin phụ (Lương/Kinh nghiệm)
-  /// Input: "Nhân Viên Kinh Doanh (Thu Nhập 15-30tr) 0](link...)"
-  /// Output: {'title': "Nhân Viên Kinh Doanh", 'extra': "Thu Nhập 15-30tr"}
-  Map<String, String> cleanJobTitle(String rawTitle) {
-    // 1. Xóa các ký tự rác Markdown/HTML artifacts (ví dụ: [0](link...))
-    String clean = rawTitle.replaceAll(RegExp(r'\[.*?\]\(.*?\)'), '');
-    clean = clean.replaceAll(RegExp(r'\d+\]'), ''); // Xóa các số dạng 0]
-
-    // 2. Tách thông tin trong dấu ngoặc ()
-    if (clean.contains('(')) {
-      List<String> parts = clean.split('(');
-      String mainTitle = parts[0].trim();
-
-      // Lấy phần trong ngoặc và xóa dấu đóng ngoặc ')'
-      String extraInfo = parts.length > 1
-          ? parts[1].replaceAll(')', '').trim()
-          : '';
-
-      return {
-        'title': mainTitle,
-        'extra': extraInfo // Đây thường là lương hoặc yêu cầu
-      };
-    }
-
-    // Trường hợp không có ngoặc, trả về nguyên gốc đã làm sạch
-    return {'title': clean.trim(), 'extra': ''};
-  }
-
-  /// HÀM MÀU SẮC CHO ĐỘ KHỚP
   Color matchColor(int match) {
     if (match >= 80) return Colors.green;
     if (match >= 50) return Colors.orange;
     return Colors.red;
   }
 
+  /// ✅ LÀM SẠCH TITLE - CHỈ LẤY TÊN CÔNG TY
+  String _cleanTitle(String rawTitle) {
+    String clean = rawTitle;
+    
+    // 1. Xóa tất cả links [text](url)
+    clean = clean.replaceAll(RegExp(r'\[.*?\]\(.*?\)'), '');
+    
+    // 2. Xóa URLs trực tiếp (https://...)
+    clean = clean.replaceAll(RegExp(r'https?://[^\s)]+'), '');
+    
+    // 3. Xóa các ký tự markdown còn sót
+    clean = clean.replaceAll(RegExp(r'\d+\]'), '');
+    clean = clean.replaceAll(RegExp(r'[\[\]]'), '');
+    clean = clean.replaceAll(RegExp(r"'{2,}|\]{2,}"), '');
+    
+    // 4. Xóa \n và normalize spaces
+    clean = clean.replaceAll(RegExp(r'\\n'), ' ');
+    clean = clean.replaceAll(RegExp(r'\n'), ' ');
+    clean = clean.replaceAll(RegExp(r'\s+'), ' ');
+    
+    // 5. ✅ CHỈ LẤY PHẦN ĐẦU TIÊN trước dấu '(' hoặc ']'
+    if (clean.contains('(')) {
+      clean = clean.split('(')[0];
+    }
+    if (clean.contains(']')) {
+      clean = clean.split(']')[0];
+    }
+    
+    return clean.trim();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Lấy kích thước màn hình
-    double screenWidth = MediaQuery.of(context).size.width;
-
-    // Logic Responsive:
-    // Nếu chiều rộng > 900px (Web rộng): 3 cột
-    // Nếu chiều rộng > 600px (Tablet/Web nhỏ): 2 cột
-    // Còn lại (Mobile): 1 cột
-    int crossAxisCount = screenWidth > 900 ? 3 : (screenWidth > 600 ? 2 : 1);
-
-    // Điều chỉnh tỷ lệ khung hình (width / height) của Card tùy theo số cột
-    // Số càng nhỏ thì Card càng cao.
-    double childAspectRatio = screenWidth > 600 ? 2.2 : 2.8;
-
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Màu nền xám nhẹ hiện đại
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         title: const Text(
-          "Việc làm phù hợp",
+          "Top Matching Jobs",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: Colors.white,
-        elevation: 1,
         centerTitle: true,
+        backgroundColor: Colors.white,
         foregroundColor: Colors.black,
+        elevation: 1,
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _jobsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Có lỗi xảy ra: ${snapshot.error}"));
-          } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            final jobs = snapshot.data!;
-
-            return GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 400, // Chiều rộng tối đa của mỗi Card
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio, // Tỷ lệ Card
-              ),
-              // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              //   crossAxisCount: crossAxisCount, // Số cột linh hoạt
-              //   crossAxisSpacing: 16,
-              //   mainAxisSpacing: 16,
-              //   childAspectRatio: childAspectRatio, // Tỷ lệ Card
-              // ),
-              itemCount: jobs.length,
-              itemBuilder: (context, index) {
-                return _buildJobCard(jobs[index]);
-              },
-            );
-          } else {
-            return const Center(
+      body: topJobs.isEmpty
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.work_off_outlined, size: 60, color: Colors.grey),
-                  SizedBox(height: 10),
-                  Text("Chưa có việc làm nào được lưu.", style: TextStyle(color: Colors.grey)),
+                  Icon(Icons.work_off_outlined, size: 80, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No jobs found',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ],
               ),
-            );
-          }
-        },
-      ),
-    );
-  }
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: topJobs.length,
+              itemBuilder: (context, index) {
+                var job = topJobs[index];
+                int matchPercent = ((job['Match (%)'] ?? 0) as num).toInt();
+                String rawTitle = job['Job Title'] ?? 'No Title';
+                String cleanTitle = _cleanTitle(rawTitle); // ✅ Làm sạch title
 
-  /// WIDGET CON: Hien thi 1 Card Job
-  Widget _buildJobCard(var job) {
-    // 1. Xử lý dữ liệu đầu vào
-    String rawTitle = job['Job Title'] ?? 'No Title';
-    Map<String, String> info = cleanJobTitle(rawTitle); // Tách title và extra
-    int matchPercent = ((job['Match (%)'] ?? 0) as num).toInt();
-
-    return Card(
-      elevation: 2, // Đổ bóng nhẹ
-      color: Colors.white,
-      shadowColor: Colors.black12,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200, width: 1),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                // --- PHẦN TRÊN: Title & Company ---
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Job Title (Đã làm sạch)
-                    Text(
-                      info['title']!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800, // In đậm mạnh
-                        fontSize: 16, // Kích thước vừa phải
-                        color: Color(0xFF2C3E50), // Màu xanh đen đậm
+                return Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: InkWell(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => JobDetailPageScreen(job: job),
+                        ),
+                      );
+                    },
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Header: Title + Match Badge
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // ✅ Title đã làm sạch
+                              Expanded(
+                                child: Text(
+                                  cleanTitle,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Color(0xFF2C3E50),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Match Badge
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: matchColor(matchPercent).withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: matchColor(matchPercent),
+                                    width: 1.5,
+                                  ),
+                                ),
+                                child: Text(
+                                  "$matchPercent%",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: matchColor(matchPercent),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          
+                          // Company
+                          Row(
+                            children: [
+                              const Icon(Icons.business, size: 16, color: Colors.grey),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  job['Company'] ?? 'N/A',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                          
+                          // ✅ BỎ HẾT URL BOX - Không hiển thị link
+                          
+                          const SizedBox(height: 12),
+                          
+                          // AI Feedback preview
+                          if ((job['Gemini Feedback'] ?? "").isNotEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: Colors.grey.shade300,
+                                  width: 1,
+                                ),
+                              ),
+                              child: Text(
+                                job['Gemini Feedback'],
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black87,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-
-                    // Company Name
-                    Row(
-                      children: [
-                        const Icon(Icons.business, size: 16, color: Colors.grey),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            job['Company'] ?? 'N/A',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                // --- PHẦN DƯỚI: Info & Match ---
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Tag thông tin phụ (Lương/Kinh nghiệm - phần tách được)
-                    if (info['extra']!.isNotEmpty)
-                      Container(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[50], // Nền xanh nhạt
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: Colors.blue.shade100),
-                        ),
-                        child: Text(
-                          info['extra']!, // Ví dụ: "15-30tr/Tháng"
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue[800],
-                            fontWeight: FontWeight.w600,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-
-                    // Thanh Match % (Progress Bar)
-                    Row(
-                      children: [
-                        Text(
-                          "$matchPercent%",
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                            color: matchColor(matchPercent),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: LinearProgressIndicator(
-                              value: matchPercent / 100,
-                              minHeight: 6,
-                              backgroundColor: Colors.grey[200],
-                              color: matchColor(matchPercent),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                );
+              },
             ),
-          ),
-        ),
-      ),
     );
   }
 }

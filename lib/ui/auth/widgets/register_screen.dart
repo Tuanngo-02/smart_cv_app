@@ -49,7 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context.go('/login');
 
     } on FirebaseAuthException catch (e) {
-      String msg = '';
+      var msg = '';
       switch (e.code) {
         case 'email-already-in-use':
           msg = 'Email đã tồn tại';
@@ -229,7 +229,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Widget _buildRoleToggle(ColorScheme cs) {
     final selectedColor = cs.primary;
-    final unselectedColor = cs.surfaceVariant ?? cs.onSurface.withOpacity(0.08);
+    final unselectedColor = cs.surfaceContainerHighest ?? cs.onSurface.withOpacity(0.08);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
