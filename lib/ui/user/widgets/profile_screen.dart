@@ -35,7 +35,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadProfile();
-    _loadStats();
   }
 
   String get uid => _auth.currentUser!.uid;
@@ -44,7 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final doc = await _firestore.collection('users').doc(uid).get();
+      final doc = await _firestore.collection('profile').doc(uid).get();
 
       if (doc.exists) {
         final data = doc.data()!;
@@ -59,53 +58,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _loadStats() async {
-    try {
-      // Tổng file uploaded
-      final filesSnapshot = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('uploaded_files')
-          .get();
-      _totalUploads = filesSnapshot.docs.length;
-
-      // Tổng lần phân tích
-      final historySnapshot = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('analysis_history')
-          .get();
-      _totalAnalysis = historySnapshot.docs.length;
-
-      // Best match
-      if (historySnapshot.docs.isNotEmpty) {
-        final histories = historySnapshot.docs
-            .map((doc) => doc.data())
-            .where((data) => data['matchScore'] != null)
-            .toList();
-
-        if (histories.isNotEmpty) {
-          histories.sort((a, b) =>
-              (b['matchScore'] ?? 0).compareTo(a['matchScore'] ?? 0));
-          final best = histories.first;
-          _bestMatch = (best['matchScore'] ?? 0).toDouble();
-          _bestJobTitle = best['jobTitle'] ?? 'Unknown';
-        }
-      }
-
-      setState(() {});
-    } catch (e) {
-      print('Error loading stats: $e');
-    }
-  }
-
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
-      await _firestore.collection('users').doc(uid).set({
+      await _firestore.collection('profile').doc(uid).set({
         'name': _nameController.text.trim(),
         'email': _auth.currentUser?.email,
         'phone': _phoneController.text.trim(),
