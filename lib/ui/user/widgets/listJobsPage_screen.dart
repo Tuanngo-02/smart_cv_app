@@ -1,3 +1,4 @@
+// dart
 import 'package:flutter/material.dart';
 import '../view_models/resultService.dart';
 import 'jobDetailPage_screen.dart';
@@ -18,9 +19,7 @@ class _ListJobsPageScreenState extends State<ListJobsPageScreen> {
     _jobsFuture = fetchUserJobs();
   }
 
-  /// ✅ LẤY TÊN CÔNG TY SẠCH - Chỉ lấy phần đầu
   String cleanCompanyName(String rawTitle) {
-    // Xóa tất cả ký tự rác
     String clean = rawTitle.replaceAll(RegExp(r'\[.*?\]\(.*?\)'), '');
     clean = clean.replaceAll(RegExp(r'\d+\]'), '');
     clean = clean.replaceAll(RegExp(r'[\[\]]'), '');
@@ -29,12 +28,9 @@ class _ListJobsPageScreenState extends State<ListJobsPageScreen> {
     clean = clean.replaceAll(RegExp(r'\\n'), ' ');
     clean = clean.replaceAll(RegExp(r'\n'), ' ');
     clean = clean.replaceAll(RegExp(r'\s+'), ' ');
-    
-    // ✅ CHỈ LẤY PHẦN ĐẦU TRƯỚC DẤU '(' nếu có
     if (clean.contains('(')) {
       clean = clean.split('(')[0];
     }
-    
     return clean.trim();
   }
 
@@ -50,6 +46,7 @@ class _ListJobsPageScreenState extends State<ListJobsPageScreen> {
     double childAspectRatio = screenWidth > 600 ? 2.2 : 2.8;
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text(
@@ -61,48 +58,50 @@ class _ListJobsPageScreenState extends State<ListJobsPageScreen> {
         centerTitle: true,
         foregroundColor: Colors.black,
       ),
-      body: FutureBuilder<List<dynamic>>(
-        future: _jobsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text("Có lỗi xảy ra: ${snapshot.error}"));
-          } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-            final jobs = snapshot.data!;
-            return GridView.builder(
-              padding: const EdgeInsets.all(16),
-              gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                maxCrossAxisExtent: 400,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: childAspectRatio,
-              ),
-              itemCount: jobs.length,
-              itemBuilder: (context, index) {
-                return _buildJobCard(jobs[index]);
-              },
-            );
-          } else {
-            return const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.work_off_outlined, size: 60, color: Colors.grey),
-                  SizedBox(height: 10),
-                  Text("Chưa có việc làm nào được lưu.", style: TextStyle(color: Colors.grey)),
-                ],
-              ),
-            );
-          }
-        },
+      body: SafeArea(
+        child: FutureBuilder<List<dynamic>>(
+          future: _jobsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text("Có lỗi xảy ra: ${snapshot.error}"));
+            } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+              final jobs = snapshot.data!;
+              return GridView.builder(
+                padding: const EdgeInsets.all(12),
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+                  maxCrossAxisExtent: 400,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: childAspectRatio,
+                ),
+                itemCount: jobs.length,
+                itemBuilder: (context, index) {
+                  return _buildJobCard(jobs[index]);
+                },
+              );
+            } else {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.work_off_outlined, size: 60, color: Colors.grey),
+                    SizedBox(height: 10),
+                    Text("Chưa có việc làm nào được lưu.", style: TextStyle(color: Colors.grey)),
+                  ],
+                ),
+              );
+            }
+          },
+        ),
       ),
     );
   }
 
   Widget _buildJobCard(var job) {
     String rawTitle = job['Job Title'] ?? 'No Title';
-    String cleanTitle = cleanCompanyName(rawTitle); // ✅ Chỉ lấy tên ngắn
+    String cleanTitle = cleanCompanyName(rawTitle);
     int matchPercent = ((job['Match (%)'] ?? 0) as num).toInt();
 
     return Card(
@@ -124,50 +123,47 @@ class _ListJobsPageScreenState extends State<ListJobsPageScreen> {
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // ✅ CHỈ HIỂN THỊ TÊN CÔNG TY - Ngắn gọn
-                  Text(
-                    cleanTitle,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 16,
-                      color: Color(0xFF2C3E50),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      cleanTitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 16,
+                        color: Color(0xFF2C3E50),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  
-                  // Company name từ field Company
-                  Row(
-                    children: [
-                      const Icon(Icons.business, size: 16, color: Colors.grey),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          job['Company'] ?? 'N/A',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.w500
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        const Icon(Icons.business, size: 16, color: Colors.grey),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            job['Company'] ?? 'N/A',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              
-              // ✅ CHỈ GIỮ MATCH % - BỎ HẾT PHẦN INFO XANH NHẠT
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Text(

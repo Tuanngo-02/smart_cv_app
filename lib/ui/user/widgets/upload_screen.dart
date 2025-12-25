@@ -8,19 +8,19 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
 import '../../core/themes/colors.dart';
 import '../view_models/cloudinaryService.dart';
 import '../view_models/fileService.dart';
 import 'analysisResultPage_screen.dart';
 import 'resultPage.dart';
-
 class UploadScreen extends StatefulWidget {
   const UploadScreen({super.key});
 
   @override
   State<UploadScreen> createState() => _UploadScreenState();
 }
-
+bool isUploadingCV = false;
 class _UploadScreenState extends State<UploadScreen> {
   final uid = FirebaseAuth.instance.currentUser!.uid;
   PlatformFile? cvFile;
@@ -84,9 +84,14 @@ class _UploadScreenState extends State<UploadScreen> {
       print("Upload lỗi: ${response.statusCode}");
     }
   }
-
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final email = user?.email ?? uid;
+    final cvName = CloudinaryService.buildFileName(
+        email: email, type: 'CV');
+    final jdName = CloudinaryService.buildFileName(
+        email: email, type: 'JD');
     return Scaffold(
       appBar: AppBar(
         title: Text("Back"),
@@ -171,8 +176,18 @@ class _UploadScreenState extends State<UploadScreen> {
                             ? () async {
                                 // Thực hiện phân tích AI
                                 // Ví dụ gửi file lên backend
-                                if (cvFile != null) {
-                                  await uploadCv(cvFile!);
+                                try{
+                                  if (cvFile != null) {
+                                    await uploadCv(cvFile!);
+                                    await CloudinaryService.uploadPdf(
+                                        file: cvFile!, basePublicId: cvName);
+                                    isUploadingCV = true;
+                                  }
+                                  print(isUploadingCV);
+                                }catch (e, stack) {
+                                  debugPrint("❌ Upload CV thất bại: $e");
+                                  debugPrintStack(stackTrace: stack);
+                                  rethrow; // 👉 quan trọng nếu caller cần biết lỗi
                                 }
                               }
                             : null, // disabled nếu chưa chọn file
@@ -196,6 +211,13 @@ class _UploadScreenState extends State<UploadScreen> {
                         ),
                         onPressed: (cvFile != null && jdFile != null)
                             ? () async {
+                          print(isUploadingCV);
+                          if(isUploadingCV == false && cvFile != null) {
+                                  await CloudinaryService.uploadPdf(
+                                      file: cvFile!, basePublicId: cvName);
+                                }
+                                await CloudinaryService.uploadPdf(
+                                    file: jdFile!, basePublicId: jdName);
                                 final result = await sendCvJdFiles(
                                     cvFile: cvFile!, jdFile: jdFile!);
                                 if (result != null && context.mounted) {
@@ -212,66 +234,66 @@ class _UploadScreenState extends State<UploadScreen> {
                         child: Text("Continue to AI Analysis"),
                       ),
                     ),
-                    SizedBox(height: 10),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: (cvFile != null &&
-                                  jdFile != null &&
-                                  !_isSavingToCloudinary)
-                              ? AppColors
-                                  .button1 // enabled when files selected and not saving
-                              : Colors.grey,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          textStyle: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        onPressed: (cvFile != null &&
-                                jdFile != null &&
-                                !_isSavingToCloudinary)
-                            ? () async {
-                                setState(() {
-                                  _isSavingToCloudinary = true;
-                                });
-                                try {
-                                  final user =
-                                      FirebaseAuth.instance.currentUser;
-                                  final email = user?.email ?? uid;
-
-                                  final cvName =
-                                      CloudinaryService.buildFileName(
-                                          email: email, type: 'CV');
-                                  final jdName =
-                                      CloudinaryService.buildFileName(
-                                          email: email, type: 'JD');
-
-                                  await CloudinaryService.uploadPdf(
-                                      file: cvFile!, basePublicId: cvName);
-                                  await CloudinaryService.uploadPdf(
-                                      file: jdFile!, basePublicId: jdName);
-
-                                  if (!mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                        content: Text(
-                                            'Lưu file lên Cloudinary thành công')),
-                                  );
-                                } finally {
-                                  if (mounted) {
-                                    setState(() {
-                                      _isSavingToCloudinary = false;
-                                    });
-                                  }
-                                }
-                              }
-                            : null,
-                        child: Text("Save Files to Cloudinary"),
-                      ),
-                    ),
+                    // SizedBox(height: 10),
+                    // SizedBox(
+                    //   width: double.infinity,
+                    //   child: ElevatedButton(
+                    //     style: ElevatedButton.styleFrom(
+                    //       backgroundColor: (cvFile != null &&
+                    //               jdFile != null &&
+                    //               !_isSavingToCloudinary)
+                    //           ? AppColors
+                    //               .button1 // enabled when files selected and not saving
+                    //           : Colors.grey,
+                    //       foregroundColor: Colors.white,
+                    //       padding: EdgeInsets.symmetric(vertical: 16),
+                    //       textStyle: TextStyle(
+                    //         fontSize: 16,
+                    //         fontWeight: FontWeight.bold,
+                    //       ),
+                    //     ),
+                    //     onPressed: (cvFile != null &&
+                    //             jdFile != null &&
+                    //             !_isSavingToCloudinary)
+                    //         ? () async {
+                    //             setState(() {
+                    //               _isSavingToCloudinary = true;
+                    //             });
+                    //             try {
+                    //               final user =
+                    //                   FirebaseAuth.instance.currentUser;
+                    //               final email = user?.email ?? uid;
+                    //
+                    //               final cvName =
+                    //                   CloudinaryService.buildFileName(
+                    //                       email: email, type: 'CV');
+                    //               final jdName =
+                    //                   CloudinaryService.buildFileName(
+                    //                       email: email, type: 'JD');
+                    //
+                    //               await CloudinaryService.uploadPdf(
+                    //                   file: cvFile!, basePublicId: cvName);
+                    //               await CloudinaryService.uploadPdf(
+                    //                   file: jdFile!, basePublicId: jdName);
+                    //
+                    //               if (!mounted) return;
+                    //               ScaffoldMessenger.of(context).showSnackBar(
+                    //                 SnackBar(
+                    //                     content: Text(
+                    //                         'Lưu file lên Cloudinary thành công')),
+                    //               );
+                    //             } finally {
+                    //               if (mounted) {
+                    //                 setState(() {
+                    //                   _isSavingToCloudinary = false;
+                    //                 });
+                    //               }
+                    //             }
+                    //           }
+                    //         : null,
+                    //     child: Text("Save Files to Cloudinary"),
+                    //   ),
+                    // ),
                   ],
                 ),
               ),

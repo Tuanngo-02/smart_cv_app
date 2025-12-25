@@ -84,3 +84,45 @@ Future<void> downloadPdf(String fullPath) async {
     await downloadPdfMobile(fullPath);
   }
 }
+Future<Map<String, dynamic>?> sendCvJdLinks({
+  required String cvUrl,
+  required String jdUrl,
+}) async {
+  try {
+    final isWeb = kIsWeb;
+
+    final uri = Uri.parse(
+      isWeb
+          ? "http://127.0.0.1:8000/analyze-by-link/"
+          : "http://10.0.2.2:8000/analyze-by-link/",
+    );
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: jsonEncode({
+        "cv_url": cvUrl, // ✅ GIỮ NGUYÊN LINK
+        "jd_url": jdUrl, // ✅ GIỮ NGUYÊN LINK
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResp =
+      jsonDecode(utf8.decode(response.bodyBytes))
+      as Map<String, dynamic>;
+      return jsonResp;
+    } else {
+      debugPrint(
+        "sendCvJdLinks Error ${response.statusCode}: ${response.body}",
+      );
+      return null;
+    }
+  } catch (e) {
+    debugPrint("sendCvJdLinks Exception: $e");
+    return null;
+  }
+}
+
+
